@@ -1,6 +1,6 @@
 import { DynamoDBClient}  from "@aws-sdk/client-dynamodb"
 import { CreateTableCommand, ListTablesCommand } from "@aws-sdk/client-dynamodb"
-const dynamodb = new DynamoDBClient({
+const dynamoClient = new DynamoDBClient({
     region: "local",
     endpoint:"http://localhost:8000",
     credentials: {
@@ -25,9 +25,9 @@ async function createExpenseTable() {
     });
     const listTablecmd = new ListTablesCommand({})
     try {
-        const existingTables = await dynamodb.send(listTablecmd)
+        const existingTables = await dynamoClient.send(listTablecmd)
         if(!existingTables.TableNames?.includes("expense")){
-             await dynamodb.send(createcmd)
+             await dynamoClient.send(createcmd)
              console.log("expense table created")
         }
         
@@ -40,4 +40,4 @@ async function createExpenseTable() {
 async function createTables() {
     await createExpenseTable()
 }
-export default createTables
+export default {createTables,dynamoClient}
