@@ -24,4 +24,24 @@ async function addUser(req:Request, res : Response){
 
 }
 
-export default addUser
+async function viewAllExpenses(req: Request, res: Response){
+    const name:string = String(req.params.name)
+    if(!name){
+        res.status(400).json({
+            message : "request should have name field"
+        })
+    }
+
+    try{
+     const expenses =await repoService.viewExpense(name) 
+     res.status(200).json({
+        message: "successfully fetched all the expenses",
+        expenses: expenses
+     })
+    }catch(err){
+        res.status(500).json({
+            message: err
+        })
+    }
+}
+export default {addUser,viewAllExpenses}

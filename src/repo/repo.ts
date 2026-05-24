@@ -34,8 +34,7 @@ async function viewExpense(userName : string) : Promise<expense | null> {
     const response = await db.dynamoClient.send(queryCmd)
      return response.Items?.[0] as expense
      }catch(err){
-        console.log(err)
-        return null
+        throw new Error(`${err}`)
     }
 }
 
