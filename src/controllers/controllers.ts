@@ -3,11 +3,13 @@ import expense from "../models/expense"
 import createExpenseObject from  "../utils/createObjects"
 import  repoService from "../repo/repo"
 async function addUser(req:Request, res : Response){
+    
     if(!req.body.name){
         res.status(400).json({
             message : "request should have name field"
         })
     }
+   
     const name = req.body.name
     const expense: expense = createExpenseObject(req.body)
     try {
@@ -15,11 +17,18 @@ async function addUser(req:Request, res : Response){
         res.status(201).json({
             message: `the user ${name} is created`
         })
-
+       return 
     }catch (err){
-        res.status(400).json({
-            message: err
+        if(err instanceof Error){
+            res.status(400).json({
+            message: err.message
         })
+        }else{
+            res.status(500).json({
+                message: "internal server error"
+            })
+        }
+       
     }
 
 }
@@ -34,6 +43,7 @@ async function viewAllExpenses(req: Request, res: Response){
 
     try{
      const expenses =await repoService.viewExpense(name) 
+     console.log(`expensse ${expenses}`)
      res.status(200).json({
         message: "successfully fetched all the expenses",
         expenses: expenses
@@ -44,4 +54,27 @@ async function viewAllExpenses(req: Request, res: Response){
         })
     }
 }
-export default {addUser,viewAllExpenses}
+
+async function viewSpecificExpense(req : Request, res : Response){
+const name = String(req.params.name) 
+const type  = String(req.params.type) 
+if(!name || !type ){
+    res.status(400).json({
+        message:"request should have all the fields"
+    })
+    return 
+}
+
+try {
+     const response = await repoService.viewExpenseByName(name,type)
+     res.status(200).json({
+        message: "successfully fetched the expense",
+        expense: response
+     })
+}catch(err){
+    res.status(500).json({
+        message: err
+    })
+}
+}
+export default {addUser,viewAllExpenses,viewSpecificExpense}

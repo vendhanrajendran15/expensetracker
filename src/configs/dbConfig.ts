@@ -1,13 +1,36 @@
-import { DynamoDBClient}  from "@aws-sdk/client-dynamodb"
-import { CreateTableCommand, ListTablesCommand } from "@aws-sdk/client-dynamodb"
-const dynamoClient = new DynamoDBClient({
-    region: "local",
-    endpoint:"http://localhost:8000",
-    credentials: {
-        accessKeyId:"local",
-        secretAccessKey:"local"
-    }
+import {
+  DynamoDBClient,
+  CreateTableCommand,
+  ListTablesCommand
+}
+from "@aws-sdk/client-dynamodb"
+
+import {
+  DynamoDBDocumentClient
+}
+from "@aws-sdk/lib-dynamodb"
+
+const client = new DynamoDBClient({
+
+  region: "local",
+
+  endpoint: "http://localhost:8000",
+
+  credentials: {
+    accessKeyId: "local",
+    secretAccessKey: "local"
+  }
 })
+
+const dynamoClient =
+  DynamoDBDocumentClient.from(client, {
+
+    marshallOptions: {
+      removeUndefinedValues: true
+    }
+  })
+
+
 async function createExpenseTable() {
     const createcmd = new CreateTableCommand({
         TableName: "expense",
