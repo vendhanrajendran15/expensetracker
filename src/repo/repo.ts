@@ -1,7 +1,7 @@
 
 import  db from "../configs/dbConfig"
 import expense from "../models/expense"
-import  {PutCommand,QueryCommand} from "@aws-sdk/lib-dynamodb"
+import  {DeleteCommand, PutCommand,QueryCommand} from "@aws-sdk/lib-dynamodb"
 import { ScanCommand }
 from "@aws-sdk/lib-dynamodb"
 async function createUser(userName : string ,expenseData : expense) {
@@ -39,10 +39,12 @@ async function viewExpense(userName : string) : Promise<expense | undefined> {
 })
    try{
     const response = await db.dynamoClient.send(queryCmd)
-   
+    if(response.Count === 0){
+        throw new Error("No user found")
+    }
      return response.Items?.[0] as expense
      }catch(err){
-        throw new Error(`${err}`)
+        throw err
     }
 }
 
@@ -67,6 +69,19 @@ async function viewExpenseByName(userName : string , expenseType: string):Promis
     }
 }
 
+async function deleteUser(userName : string) : Promise<void> {
+    const deleteCmd = new DeleteCommand({
+        TableName : "expense",
+        Key : {
+            "name" : userName
+        }
 
+    })
+    try {
+         await db.dynamoClient.send(deleteCmd)
+    }catch(err){
+        throw new Error("unable to delete the user")
+    }
+}
 
-export default {viewExpense,createUser,viewExpenseByName}
+export default {viewExpense,createUser,viewExpenseByName,deleteUser}

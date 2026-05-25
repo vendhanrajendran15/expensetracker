@@ -50,7 +50,7 @@ async function viewAllExpenses(req: Request, res: Response){
      })
     }catch(err){
         res.status(500).json({
-            message: err
+            message: err instanceof Error ? err.message : "internel server error"
         })
     }
 }
@@ -77,4 +77,24 @@ try {
     })
 }
 }
-export default {addUser,viewAllExpenses,viewSpecificExpense}
+
+async function removeUser(req : Request, res : Response){
+    const name = String(req.params.name)
+    if(!name){
+        res.status(400).json({
+            message: "request should have the name field"
+        })
+        return
+    }
+    try{
+          await repoService.deleteUser(name)
+          res.status(200).json({
+            message: `the user ${name} is deleted`
+          })
+    }catch(err){
+          res.status(500).json({
+            message: err
+          })
+    }
+}
+export default {addUser,viewAllExpenses,viewSpecificExpense,removeUser}
