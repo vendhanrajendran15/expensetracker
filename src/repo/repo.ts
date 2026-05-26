@@ -1,7 +1,7 @@
 
 import  db from "../configs/dbConfig"
 import expense from "../models/expense"
-import  {DeleteCommand, PutCommand,QueryCommand} from "@aws-sdk/lib-dynamodb"
+import  {DeleteCommand, PutCommand,QueryCommand, UpdateCommand} from "@aws-sdk/lib-dynamodb"
 import { ScanCommand }
 from "@aws-sdk/lib-dynamodb"
 async function createUser(userName : string ,expenseData : expense) {
@@ -74,14 +74,74 @@ async function deleteUser(userName : string) : Promise<void> {
         TableName : "expense",
         Key : {
             "name" : userName
-        }
-
+        },
+         ReturnValues: "ALL_OLD"
     })
     try {
-         await db.dynamoClient.send(deleteCmd)
+         const response = await db.dynamoClient.send(deleteCmd)
+         if (response.Attributes === undefined){
+             throw new Error("unable to find the user")
+         }
     }catch(err){
+        if (err instanceof Error) {
+             throw err
+        }
         throw new Error("unable to delete the user")
     }
 }
 
-export default {viewExpense,createUser,viewExpenseByName,deleteUser}
+async function deleteUserExpense(userName : string , type : string): Promise<void>{
+  const deleteCmd = new UpdateCommand({
+    TableName: "expense",
+    Key:{
+        "name":userName
+    },
+    UpdateExpression :
+        "REMOVE expense.#type"
+    ,
+    ExpressionAttributeNames :{
+        "#type": type
+    },
+     ReturnValues: "ALL_NEW"
+  })
+  try{
+   const response = await db.dynamoClient.send(deleteCmd)
+   
+     if (response.Attributes === undefined){
+             throw new Error("unable to find the user expense type")
+         }
+  }catch(err){
+     if (err instanceof Error) {
+             throw err
+        }
+    throw new Error("unable to delete the expense type")
+  }
+}
+async function deleteUserExpenseType(userName : string , type : string,value : string): Promise<void>{
+  const deleteCmd = new UpdateCommand({
+    TableName: "expense",
+    Key:{
+        "name":userName
+    },
+    UpdateExpression :
+        "REMOVE expense.#type.#value"
+    ,
+    ExpressionAttributeNames :{
+        "#type": type,
+        "#value": value
+    },
+     ReturnValues: "ALL_NEW"
+  })
+  try{
+   const response = await db.dynamoClient.send(deleteCmd)
+    if (response.Attributes === undefined){
+             throw new Error("unable to find the user expense type value")
+         }
+  }catch(err){
+    if (err instanceof Error) {
+             throw err
+        }
+    throw new Error("unable to delete the expense type value")
+  }
+}
+export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType}
