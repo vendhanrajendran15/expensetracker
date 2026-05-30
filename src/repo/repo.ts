@@ -1,4 +1,5 @@
 
+import { json } from "express"
 import  db from "../configs/dbConfig"
 import expense from "../models/expense"
 import  {DeleteCommand, PutCommand,QueryCommand, UpdateCommand} from "@aws-sdk/lib-dynamodb"
@@ -30,6 +31,7 @@ async function viewExpense(userName : string) : Promise<expense | undefined> {
    const queryCmd = new QueryCommand({
     TableName : "expense",
     KeyConditionExpression : "#col= :value",
+    ProjectionExpression : "expense",
     ExpressionAttributeNames: {
         "#col" : "name"
     },
@@ -144,4 +146,70 @@ async function deleteUserExpenseType(userName : string , type : string,value : s
     throw new Error("unable to delete the expense type value")
   }
 }
-export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType}
+
+async function updateExpenseType( userName: string , type : string , reason : string , cost : number){
+    const updateCmd = new UpdateCommand({
+        TableName : "expense",
+        Key : {"name" : userName},
+        UpdateExpression :
+            "SET expense.#type.#key = :value",
+        ExpressionAttributeNames : {
+            "#type": type,
+            "#key" : reason
+        },
+        ExpressionAttributeValues : {
+            ":value": cost
+        },
+        ConditionExpression:
+      "attribute_exists(expense.#type)",
+        ReturnValues : "ALL_NEW"
+    })
+
+    try {
+        const response = await db.dynamoClient.send(updateCmd)
+        if(response.$metadata.httpStatusCode !== 200){
+            throw new Error("Invalid values")
+        }
+    }catch(err){
+        if( err instanceof Error) {
+              throw err
+        }
+        throw new Error(" Internel server error")
+    }
+
+}
+async function updateExpense( userName: string , type : string ,obj : any){
+    // console.log(JSON.stringify(obj))
+    // console.log(JSON.stringify(type))
+    // console.log(obj)
+    // console.log(type)
+    const updateCmd = new UpdateCommand({
+        TableName : "expense",
+        Key : {"name" : userName},
+        UpdateExpression :
+            "SET expense.#type = :value",
+        ExpressionAttributeNames : {
+            "#type": type
+        },
+        ExpressionAttributeValues : {
+            ":value": obj
+        },
+      
+        ReturnValues : "ALL_NEW"
+    })
+
+    try {
+        const response = await db.dynamoClient.send(updateCmd)
+        console.log(response)
+        if(response.$metadata.httpStatusCode !== 200){
+            throw new Error("user not found")
+        }
+    }catch(err){
+        if( err instanceof Error) {
+              throw err
+        }
+        throw new Error(" Internel server error")
+    }
+
+}
+export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType,updateExpenseType,updateExpense}
