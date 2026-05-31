@@ -238,3 +238,27 @@ export async function calculateSpecificExpense( req : Request, res :Response){
         })
     }
 }
+
+export async function addExistingExpense(req:Request, res: Response){
+    const name = String(req.params.name)
+    const type = String(req.params.type)
+    const reason = String(req.query.reason)
+    const cost = Number(req.query.cost)
+    if (!name || !type || !reason || !cost) {
+        res.status(400).json({
+            message: "request should have all the fields"
+        })
+        return
+    }
+
+    try{
+        await repoService.addExpense(name,type,reason,cost)
+        res.status(200).json({
+            message:"cost added"
+        })
+    }catch(err){
+         res.status(500).json({
+            message: err instanceof Error ? err.message : "internel server error"
+        })
+    }
+}

@@ -179,10 +179,7 @@ async function updateExpenseType( userName: string , type : string , reason : st
 
 }
 async function updateExpense( userName: string , type : string ,obj : any){
-    // console.log(JSON.stringify(obj))
-    // console.log(JSON.stringify(type))
-    // console.log(obj)
-    // console.log(type)
+  
     const updateCmd = new UpdateCommand({
         TableName : "expense",
         Key : {"name" : userName},
@@ -200,7 +197,7 @@ async function updateExpense( userName: string , type : string ,obj : any){
 
     try {
         const response = await db.dynamoClient.send(updateCmd)
-        console.log(response)
+     
         if(response.$metadata.httpStatusCode !== 200){
             throw new Error("user not found")
         }
@@ -212,4 +209,35 @@ async function updateExpense( userName: string , type : string ,obj : any){
     }
 
 }
-export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType,updateExpenseType,updateExpense}
+
+async function addExpense(userName: string , type : string , reason : string , cost : number){
+  const updateCmd = new UpdateCommand({
+    TableName: "expense",
+    Key: { name: userName },
+
+    UpdateExpression:
+        "SET expense.#type.#key = if_not_exists(expense.#type.#key, :zero) + :cost",
+
+    ExpressionAttributeNames: {
+        "#type": type,
+        "#key": reason
+    },
+
+    ExpressionAttributeValues: {
+        ":cost": cost,
+        ":zero": 0
+    },
+
+    ReturnValues: "ALL_NEW"
+})
+
+    try{
+         const response=await db.dynamoClient.send(updateCmd)
+    }catch(err){
+           if( err instanceof Error) {
+              throw err
+        }
+        throw new Error(" Internel server error")
+    }
+}
+export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType,updateExpenseType,updateExpense,addExpense}

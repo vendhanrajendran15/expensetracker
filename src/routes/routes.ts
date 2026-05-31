@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {addUser,viewAllExpenses,viewSpecificExpense,removeUser,removeUserExpense,removeUserExpenseType,putNewExpenseType,putNewExpense,calculateWholeExpense,calculateSpecificExpense} from "../controllers/controllers";
+import {addUser,viewAllExpenses,viewSpecificExpense,removeUser,removeUserExpense,removeUserExpenseType,putNewExpenseType,putNewExpense,calculateWholeExpense,calculateSpecificExpense,addExistingExpense} from "../controllers/controllers";
 const router = Router()
 
 router.post("/createUser",addUser)
@@ -12,4 +12,5 @@ router.put("/putExpenses/:name/:type",putNewExpenseType)
 router.put("/putExpenses/:name",putNewExpense)
 router.get("/getExpensesTotal/:name",calculateWholeExpense)
 router.get("/getExpensesTotal/:name/:type",calculateSpecificExpense)
+router.put("/addExpense/:name/:type",addExistingExpense)
 export default router
