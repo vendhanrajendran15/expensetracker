@@ -3,12 +3,12 @@ import {
   CreateTableCommand,
   ListTablesCommand
 }
-from "@aws-sdk/client-dynamodb"
+  from "@aws-sdk/client-dynamodb"
 
 import {
   DynamoDBDocumentClient
 }
-from "@aws-sdk/lib-dynamodb"
+  from "@aws-sdk/lib-dynamodb"
 
 const client = new DynamoDBClient({
 
@@ -31,36 +31,54 @@ const dynamoClient =
   })
 
 
-async function createExpenseTable() {
-    const createcmd = new CreateTableCommand({
-        TableName: "expense",
-        AttributeDefinitions: [{
-            AttributeName: "name",
-            AttributeType: "S",
-        }
-        ],
-        KeySchema: [{
-            AttributeName: "name",
-            KeyType: "HASH"
-        }],
-        BillingMode: "PAY_PER_REQUEST"
-
-    });
-    const listTablecmd = new ListTablesCommand({})
-    try {
-        const existingTables = await dynamoClient.send(listTablecmd)
-        if(!existingTables.TableNames?.includes("expense")){
-             await dynamoClient.send(createcmd)
-             console.log("expense table created")
-        }
-        
-    }catch(err){
-        console.log(err)
-    }
-     
-}
-
 async function createTables() {
-    await createExpenseTable()
+  const createExpenseTableCmd = new CreateTableCommand({
+    TableName: "expense",
+    AttributeDefinitions: [{
+      AttributeName: "name",
+      AttributeType: "S",
+    }
+    ],
+    KeySchema: [{
+      AttributeName: "name",
+      KeyType: "HASH"
+    }],
+    BillingMode: "PAY_PER_REQUEST"
+
+  });
+  const createUsersTableCmd = new CreateTableCommand({
+    TableName: "users",
+    AttributeDefinitions: [{
+      AttributeName: "Name",
+      AttributeType: "S",
+    },
+    ],
+    KeySchema: [{
+      AttributeName: "Name",
+      KeyType: "HASH"
+    },],
+    BillingMode: "PAY_PER_REQUEST"
+
+  });
+  const listTablecmd = new ListTablesCommand({})
+  try {
+    const existingTables = await dynamoClient.send(listTablecmd)
+    if (!existingTables.TableNames?.includes("expense")) {
+      await dynamoClient.send(createExpenseTableCmd)
+      console.log("expense table created")
+    }
+    if (!existingTables.TableNames?.includes("users")) {
+      await dynamoClient.send(createUsersTableCmd)
+      console.log("user table created")
+    }
+
+  } catch (err) {
+    console.log(err)
+  }
+
 }
-export default {createTables,dynamoClient}
+
+async function dbSetup() {
+  await createTables()
+}
+export default { dbSetup, dynamoClient }

@@ -5,7 +5,75 @@ import expense from "../models/expense"
 import  {DeleteCommand, PutCommand,QueryCommand, UpdateCommand} from "@aws-sdk/lib-dynamodb"
 import { ScanCommand }
 from "@aws-sdk/lib-dynamodb"
-async function createUser(userName : string ,expenseData : expense) {
+
+async function createUser(userName: string , password: string, emailId : string){
+    const checkcmd = new QueryCommand({
+        TableName: "users",
+        KeyConditionExpression: "Name = :value",
+        ExpressionAttributeValues:{
+             ":value": userName,
+        }
+    })
+    const user ={
+        Name : userName,
+        Password : password,
+        email: emailId
+    }
+     const putcmd = new PutCommand({
+        TableName: "users",
+        Item: user,
+    })
+
+    try{
+       const response = await db.dynamoClient.send(checkcmd)
+       if(response.Items!== undefined){
+        throw new Error("user name already exist")
+       }
+    }catch(err){
+        if(err instanceof Error){
+            throw err
+        }
+        throw new Error("internal server error")
+    }
+
+       try{
+       await db.dynamoClient.send(putcmd)
+      
+    }catch(err){
+    
+        throw new Error("internal server error")
+    }
+}
+
+async function checkUser(userName: string , password: string){
+    const checkcmd = new QueryCommand({
+        TableName: "users",
+        KeyConditionExpression: "Name = :value",
+        ExpressionAttributeValues:{
+             ":value": userName,
+        }
+    })
+  
+     
+
+    try{
+       const response = await db.dynamoClient.send(checkcmd)
+       if(response.Items=== undefined){
+        throw new Error("user not in the db ")
+       }
+       if (response.Items?.[0].password !== password){
+         throw new Error("wrong password")
+       }
+    }catch(err){
+        if(err instanceof Error){
+            throw err
+        }
+        throw new Error("internal server error")
+    }
+
+    
+}
+async function createUserData(userName : string ,expenseData : expense) {
     
     const userItem = {
         name :userName,
@@ -240,4 +308,5 @@ async function addExpense(userName: string , type : string , reason : string , c
         throw new Error(" Internel server error")
     }
 }
-export default {viewExpense,createUser,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType,updateExpenseType,updateExpense,addExpense}
+
+export default {viewExpense,createUserData,viewExpenseByName,deleteUser,deleteUserExpense,deleteUserExpenseType,updateExpenseType,updateExpense,addExpense}

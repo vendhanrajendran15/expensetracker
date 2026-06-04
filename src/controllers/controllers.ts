@@ -14,7 +14,7 @@ export async function addUser(req: Request, res: Response) {
     const name = req.body.name
     const expense: expense = createExpenseObject(req.body)
     try {
-        await repoService.createUser(name, expense)
+        await repoService.createUserData(name, expense)
         res.status(201).json({
             message: `the user ${name} is created`
         })
